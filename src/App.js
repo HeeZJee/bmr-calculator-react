@@ -9,9 +9,10 @@ export class App extends Component {
     age: 0,
     heightInches: 0,
     heightFeets: 0,
-    activity: '',
+    activity: 0,
     bmr: 0,
-    error: false,
+    error: '',
+    calories: 0,
   }
 
   handleChange = (event) => {
@@ -35,28 +36,49 @@ export class App extends Component {
     if (name === "activity") {
       this.setState({ activity: value })
     }
+    console.log(this.state.activity)
   }
 
   calculateBMR = () => {
 
-    const { gender, weight, age, heightInches, heightFeets, activity } = this.state
+    //  Getting States
+    const { gender, weight, age, heightInches, heightFeets } = this.state
+
+    // Preventing from empty fields
     if (!gender || !weight || !age || !heightInches || !heightFeets) {
-      this.setState({ error: true })
+      this.setState({ error: 'All Fields are required' })
       return;
     }
+
+    // Setting BMR
     const height = (heightFeets * 30.48) + (heightInches * 2.54)
-    const bmrMale = 66 + (6.2 * weight) + (12.7 * height) - (6.76 * age)
-    console.log(bmrMale)
-    const bmrFemale = 655.1 + (4.32 * weight) + (4.7 * height) - (4.7 * age)
-    console.log(bmrFemale)
+    const bmrMale = 66 + (6.2 * weight) + (12.7 * height) - (6.76 * age) // Male
+    const bmrFemale = 655.1 + (4.32 * weight) + (4.7 * height) - (4.7 * age) // Female
     const bmr = gender === '1' ? bmrFemale : gender === '2' ? bmrMale : null
     this.setState({ bmr })
+    this.setState({ error: '' })
+  }
+
+  calculateCalories = () => {
+    const { bmr, activity } = this.state
+
+    if (parseFloat(activity) === 0 || activity === '') {
+      this.setState({ error: "Select your workout activity." })
+      return
+    }
+
+    if (!bmr) {
+      this.setState({ error: "First you have to calculate BMR." })
+      return
+    }
+
+    const calories = bmr + parseFloat(activity)
+    this.setState({ calories })
     this.setState({ error: false })
-    console.log(bmrMale)
   }
 
   render() {
-    const { gender, weight, age, heightInches, heightFeets, activity, error, bmr } = this.state
+    const { gender, weight, age, heightInches, heightFeets, activity, error, bmr, calories } = this.state
 
 
 
@@ -84,9 +106,9 @@ export class App extends Component {
             <label className="label">Age in years</label>
             <input value={age} onChange={this.handleChange} type="number" className="age" name="age" min="0" max="120" />
           </div>
-          {error && <div className='error'>All Fields are required</div>}
+          {error && <div className='error'>{error}</div>}
           <button type="button" onClick={this.calculateBMR}>Calculate BMR</button>
-          {bmr !== 0 && <div className="result">{bmr.toFixed(2)}</div>}
+          {bmr !== 0 && <div className="result">{bmr.toFixed(2)} Calories/day</div>}
           <div className="workout">
             <div className="inputwrap">
               <label className="label">Workout in a Week</label>
@@ -99,7 +121,8 @@ export class App extends Component {
                 <option value="1.9">Extremely Active (Very intense exercise, and physical job, exercise multiple times per day)</option>
               </select>
             </div>
-            <button type="button">Calculate Calories</button>
+            <button type="button" onClick={this.calculateCalories}>Calculate Calories</button>
+            {calories !== 0 && <div className="result">{calories.toFixed(2)}  daily kilocalories  needed</div>}
           </div>
         </div>
       </div>
